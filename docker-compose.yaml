@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile.backend
+    volumes:
+      - ./app/shared_volume:/shared_volume
+    networks:
+      - detection_network
+    # Uncomment the following line to allow the backend to be accessed from outside the container
+    # ports:
+    #   - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      dockerfile: Dockerfile.frontend
+    volumes:
+      - ./app/shared_volume:/shared_volume
+    ports:
+      - "8501:8501"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - detection_network
+
+networks:
+  detection_network:
+    driver: bridge
